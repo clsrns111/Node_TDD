@@ -1,8 +1,14 @@
 const req = require("supertest");
 const should = require("should");
-const app = require("./index");
+const app = require("../../index");
+const models = require("../../models/models.js");
+const syncDB = require("../../bin/syncDB");
 
 describe("GET/users는 ", () => {
+  const users = [{ name: "elice" }, { name: "chris" }, { name: "bak" }];
+  before(() => syncDB());
+  before(() => models.User.bulkCreate(users));
+
   describe("성공시", () => {
     it("유저 객체를 담은 배열로 응답한다.", (done) => {
       req(app)
@@ -65,7 +71,11 @@ describe("DELETE/users/1", () => {
   });
 });
 
-describe("POST/users", () => {
+describe.only("POST/users", () => {
+  const users = [{ name: "elice" }, { name: "chris" }, { name: "bak" }];
+  before(() => syncDB());
+  before(() => models.User.bulkCreate(users));
+
   describe("성공시", () => {
     let body;
     let name = "daniel";
@@ -90,12 +100,45 @@ describe("POST/users", () => {
       done();
     });
   });
+
   describe("실패시", () => {
     it("name 파라메터 누락시 400을 반환한다.", (done) => {
       req(app).post("/users").send({}).expect(400).end(done);
     });
   });
   it("name이 중복일 경우 409를 반환한다.", (done) => {
-    req(app).post("/users").send({ name: "jop" }).expect(409).end(done);
+    req(app).post("/users").send({ name: "alice" }).expect(409).end(done);
+  });
+});
+
+describe("PUT/users/:id", () => {
+  const name = "din";
+  describe("성공시", () => {
+    it("변경된 이름을 응답한다.", (done) => {
+      req(app)
+        .put("/users/3")
+        .send({ name })
+        .end((err, res) => {
+          res.body.should.have.property("name", name);
+          done();
+        });
+    });
+  });
+  describe("실패시", () => {
+    it("id가 정수가 아닌 경우 400을 반환한다.", (done) => {
+      req(app).put("/users/1").expect(400).end(done);
+    });
+
+    it("name이 없는 경우 400을 반환한다.", (done) => {
+      req(app).put("/users/3").send({ name }).expect(400).end(done);
+    });
+
+    it("없는 유저인 경우 400을 반환한다.", (done) => {
+      req(app).put("/users/999").send({ name }).expect(400).end(done);
+    });
+
+    it("이름이 중복인 경우 400을 반환한다.", (done) => {
+      req(app).put("/users/1").send({ name: "elice123" }).expect(400).end(done);
+    });
   });
 });

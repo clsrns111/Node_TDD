@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": " mocha api/user/user.spec.js -w",
+    "start": "nodemon bin/www.js"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +13,10 @@
   "dependencies": {
     "express": "^4.17.1",
     "mocha": "^9.1.3",
+    "sequelize": "^6.9.0",
     "should": "^13.2.3",
+    "sqlite": "^4.0.23",
+    "sqlite3": "^5.0.2",
     "supertest": "^6.1.6"
   }
 }
